@@ -35,6 +35,9 @@ app.Run(async (context) => {
     InitialSessionState sessionState = InitialSessionState.CreateDefault();
     sessionState.ExecutionPolicy = Microsoft.PowerShell.ExecutionPolicy.Unrestricted; //This will fail if you try and containerize the app. Remove this line if so.
 
+    //Expose raw context object to PWSH for advanced read functions
+    sessionState.Variables.Add(new SessionStateVariableEntry("_HTTPCONTEXT", context, "HTTP Query String Dictionary", ScopedItemOptions.Constant));
+
     //Expose Query String to PWSH like PHP
     sessionState.Variables.Add(new SessionStateVariableEntry("_GET", context.Request.Query, "HTTP Query String Dictionary", ScopedItemOptions.Constant));
 
