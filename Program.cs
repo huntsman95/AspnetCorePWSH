@@ -1,13 +1,16 @@
 using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.FileProviders;
 using Namotion.Reflection;
 using System.Collections.ObjectModel;
 using System.Management.Automation;
 using System.Management.Automation.Runspaces;
+using System.Net.Http;
 using System.Reflection.PortableExecutable;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
+using Microsoft.AspNetCore.Http.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 var app = builder.Build();
@@ -28,6 +31,10 @@ var path = Path.Combine(
 //Our whole app is basically middleware
 app.Run(async (context) => {
 
+    //Get IIS Server Variables
+    IServerVariablesFeature serverVariables = context.Features.Get<IServerVariablesFeature>();
+    
+
     //Allow us to read the POST data in raw format
     context.Request.EnableBuffering();
 
@@ -36,7 +43,10 @@ app.Run(async (context) => {
     sessionState.ExecutionPolicy = Microsoft.PowerShell.ExecutionPolicy.Unrestricted; //This will fail if you try and containerize the app. Remove this line if so.
 
     //Expose raw context object to PWSH for advanced read functions
-    sessionState.Variables.Add(new SessionStateVariableEntry("_HTTPCONTEXT", context, "HTTP Query String Dictionary", ScopedItemOptions.Constant));
+    sessionState.Variables.Add(new SessionStateVariableEntry("_HTTPCONTEXT", context, "HTTP Context", ScopedItemOptions.Constant));
+
+    //Expose Server Vars to PWSH like PHP
+    sessionState.Variables.Add(new SessionStateVariableEntry("_SERVER_AUTH_USER", serverVariables["AUTH_USER"], "HTTP Context Server Vars", ScopedItemOptions.Constant));
 
     //Expose Query String to PWSH like PHP
     sessionState.Variables.Add(new SessionStateVariableEntry("_GET", context.Request.Query, "HTTP Query String Dictionary", ScopedItemOptions.Constant));
@@ -92,6 +102,9 @@ app.Run(async (context) => {
     byte[] PWSHBinaryResponse = new byte[0];
 
     List<byte> tmpBytes = new();
+
+    // Set working directory to PwshWeb before opening runspace to avoid including "Push-Location $PSScriptRoot" in your controller script.
+    System.Environment.CurrentDirectory = path;
 
     using (PowerShell PowerShellInst = PowerShell.Create(sessionState))
     {
