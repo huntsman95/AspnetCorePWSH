@@ -46,7 +46,11 @@ app.Run(async (context) => {
     sessionState.Variables.Add(new SessionStateVariableEntry("_HTTPCONTEXT", context, "HTTP Context", ScopedItemOptions.Constant));
 
     //Expose Server Vars to PWSH like PHP
-    sessionState.Variables.Add(new SessionStateVariableEntry("_SERVER_AUTH_USER", serverVariables["AUTH_USER"], "HTTP Context Server Vars", ScopedItemOptions.Constant));
+    try
+    {
+        sessionState.Variables.Add(new SessionStateVariableEntry("_SERVER_AUTH_USER", serverVariables["AUTH_USER"], "HTTP Context Server Vars", ScopedItemOptions.Constant));
+    }
+    catch { }
 
     //Expose Query String to PWSH like PHP
     sessionState.Variables.Add(new SessionStateVariableEntry("_GET", context.Request.Query, "HTTP Query String Dictionary", ScopedItemOptions.Constant));
