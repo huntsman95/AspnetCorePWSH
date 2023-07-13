@@ -40,7 +40,14 @@ app.Run(async (context) => {
 
     //Define session state for PWSH
     InitialSessionState sessionState = InitialSessionState.CreateDefault();
-    sessionState.ExecutionPolicy = Microsoft.PowerShell.ExecutionPolicy.Unrestricted; //This will fail if you try and containerize the app. Remove this line if so.
+
+    try
+    {
+        sessionState.ExecutionPolicy = Microsoft.PowerShell.ExecutionPolicy.Unrestricted; //This will fail if you try and containerize the app. Remove this line if so.
+    }
+    catch {
+        // Silently fail if unsupported (i.e. when running containerized or on linux)
+    }
 
     //Expose raw context object to PWSH for advanced read functions
     sessionState.Variables.Add(new SessionStateVariableEntry("_HTTPCONTEXT", context, "HTTP Context", ScopedItemOptions.Constant));

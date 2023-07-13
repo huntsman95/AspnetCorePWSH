@@ -1,1 +1,1 @@
-﻿"It Works!"
+﻿"AspnetCorePWSH running on PowerShell v{0}" -f $PSVersionTable.PSVersion
