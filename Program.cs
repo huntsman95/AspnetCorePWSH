@@ -11,6 +11,7 @@ using System.Reflection.PortableExecutable;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using Microsoft.AspNetCore.Http.Extensions;
+using System.Runtime.InteropServices;
 
 var builder = WebApplication.CreateBuilder(args);
 var app = builder.Build();
@@ -20,7 +21,7 @@ var app = builder.Build();
 app.UseStaticFiles(new StaticFileOptions
 {
     FileProvider = new PhysicalFileProvider(
-           Path.Combine(builder.Environment.ContentRootPath, "PwshWeb\\public")),
+           Path.Combine(builder.Environment.ContentRootPath, "PwshWeb/public")),
     RequestPath = ""
 });
 
@@ -41,18 +42,17 @@ app.Run(async (context) => {
     //Define session state for PWSH
     InitialSessionState sessionState = InitialSessionState.CreateDefault();
 
-    try
+
+    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
     {
         sessionState.ExecutionPolicy = Microsoft.PowerShell.ExecutionPolicy.Unrestricted; //This will fail if you try and containerize the app. Remove this line if so.
     }
-    catch {
-        // Silently fail if unsupported (i.e. when running containerized or on linux)
-    }
+
 
     //Expose raw context object to PWSH for advanced read functions
     sessionState.Variables.Add(new SessionStateVariableEntry("_HTTPCONTEXT", context, "HTTP Context", ScopedItemOptions.Constant));
 
-    //Expose Server Vars to PWSH like PHP
+    //Expose Server Vars to PWSH like PHP - (This is for IIS Windows Authentication)
     try
     {
         sessionState.Variables.Add(new SessionStateVariableEntry("_SERVER_AUTH_USER", serverVariables["AUTH_USER"], "HTTP Context Server Vars", ScopedItemOptions.Constant));

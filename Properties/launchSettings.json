@@ -21,6 +21,12 @@
       "environmentVariables": {
         "DEBUG": "TRUE"
       }
+    },
+    "Docker": {
+      "commandName": "Docker",
+      "launchBrowser": true,
+      "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}",
+      "publishAllPorts": true
     }
   },
   "iisSettings": {
