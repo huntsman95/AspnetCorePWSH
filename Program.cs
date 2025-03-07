@@ -2,7 +2,6 @@ using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.FileProviders;
-using Namotion.Reflection;
 using System.Collections.ObjectModel;
 using System.Management.Automation;
 using System.Management.Automation.Runspaces;
@@ -21,7 +20,7 @@ var app = builder.Build();
 app.UseStaticFiles(new StaticFileOptions
 {
     FileProvider = new PhysicalFileProvider(
-           Path.Combine(builder.Environment.ContentRootPath, "PwshWeb/public")),
+           Path.Combine(builder.Environment.ContentRootPath, "PwshWeb", "public")),
     RequestPath = ""
 });
 
@@ -55,7 +54,10 @@ app.Run(async (context) => {
     //Expose Server Vars to PWSH like PHP - (This is for IIS Windows Authentication)
     try
     {
-        sessionState.Variables.Add(new SessionStateVariableEntry("_SERVER_AUTH_USER", serverVariables["AUTH_USER"], "HTTP Context Server Vars", ScopedItemOptions.Constant));
+        if (serverVariables != null)
+        {
+            sessionState.Variables.Add(new SessionStateVariableEntry("_SERVER_AUTH_USER", serverVariables["AUTH_USER"], "HTTP Context Server Vars", ScopedItemOptions.Constant));
+        }
     }
     catch { }
 
